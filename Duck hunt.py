@@ -15,16 +15,24 @@ class color:
 
 pygame.init()
 
-SCREEN = pygame.display.set_mode((1280, 720),)
+FPS = 30
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
+
+SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+clock = pygame.time.Clock()
+
 pygame.display.set_caption("Duck Hunt")
 
 def main_menu():
     while True:
         SCREEN.fill("White")
+        pygame.display.flip()
+        clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        pygame.display.update()
+        
 
 main_menu()
