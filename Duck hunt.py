@@ -16,8 +16,10 @@ class color:
 pygame.init()
 
 FPS = 30
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = 1024
+WINDOW_HEIGHT = 768
+
+BG = pygame.image.load("sprites/background.png")
 
 SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 clock = pygame.time.Clock()
@@ -26,7 +28,7 @@ pygame.display.set_caption("Duck Hunt")
 
 def main_menu():
     while True:
-        SCREEN.fill("White")
+        SCREEN.blit(BG,(0,0))
         pygame.display.flip()
         clock.tick(FPS)
         for event in pygame.event.get():
@@ -34,5 +36,5 @@ def main_menu():
                 pygame.quit()
                 sys.exit()
         
-
+SCREEN.fill("White")
 main_menu()
