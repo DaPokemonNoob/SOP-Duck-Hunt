@@ -1,5 +1,7 @@
 import pygame, sys
+import random
 from pygame import mixer
+from duck import Duck
 
 class Color:
    PURPLE = '\033[95m'
@@ -26,9 +28,14 @@ clock = pygame.time.Clock()
 
 pygame.display.set_caption("Duck Hunt")
 
+ducks = [Duck(random.randint(0, WINDOW_WIDTH - 50), random.randint(50, 300), random.choice([-3, 3])) for _ in range(5)]
+
 def main_menu():
     while True:
         SCREEN.blit(BG,(0,0))
+        for duck in ducks:
+            duck.move()
+            duck.draw(SCREEN)
         pygame.display.flip()
         clock.tick(FPS)
         for event in pygame.event.get():
