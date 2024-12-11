@@ -16,7 +16,7 @@ class Duck():
         self.x += self.speed
 
         # Tjek for kant og skift retning
-        if self.x > WINDOW_WIDTH:
+        if self.x + self.rect.width > WINDOW_WIDTH:
             self.speed = -self.speed
             self.current_image = self.flipped_image  # Skift til flippet sprite
         if self.x < 0:

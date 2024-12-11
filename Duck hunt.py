@@ -28,7 +28,7 @@ clock = pygame.time.Clock()
 
 pygame.display.set_caption("Duck Hunt")
 
-ducks = [Duck(random.randint(0, WINDOW_WIDTH - 50), random.randint(50, 300), random.choice([-8, 8])) for _ in range(5)]
+ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(50, 300), random.choice([-8, 8])) for _ in range(5)]
 
 def main_menu():
     while True:
