@@ -3,6 +3,7 @@ import random
 from pygame import mixer
 from duck import Duck
 from gun import Gun
+from player import Player
 
 class Color:
    PURPLE = '\033[95m'
@@ -31,6 +32,7 @@ clock = pygame.time.Clock()
 pygame.display.set_caption("Duck Hunt")
 
 ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(50, 300), random.choice([-8, 8])) for _ in range(5)]
+player = Player()
 bullets = []
 
 def main_menu():
@@ -38,11 +40,26 @@ def main_menu():
     while running:
         SCREEN.blit(BG,(0,0))
 
+        mouse_pos = pygame.mouse.get_pos()
+        player.move(mouse_pos)
+        
         for duck in ducks:
             duck.move()
             duck.draw(SCREEN)
 
-        
+        for bullet in bullets:
+            bullet.move()
+            bullet.draw(SCREEN)
+
+        for bullet in bullets:
+            for duck in ducks:
+                if duck.rect.colliderect(bullet.rect):
+                    duck.remove(duck)
+                    bullets.remove(bullet)
+                    player.score += 10
+                    break
+
+        player.draw(SCREEN)
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -54,6 +71,8 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     bullets.append(Gun(player.rect.centerx, player.rect.centery))
+
+        
 
 SCREEN.fill("White")
 main_menu()
