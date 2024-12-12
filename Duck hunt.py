@@ -1,27 +1,16 @@
-import pygame, sys
+import pygame
 import random
-from pygame import mixer
 from duck import Duck
-from gun import Gun
 from player import Player
+import serial
 
-class Color:
-   PURPLE = '\033[95m'
-   CYAN = '\033[96m'
-   DARKCYAN = '\033[36m'
-   BLUE = '\033[94m'
-   GREEN = '\033[92m'
-   YELLOW = '\033[93m'
-   RED = '\033[91m'
-   BOLD = '\033[1m'
-   UNDERLINE = '\033[4m'
-   END = '\033[0m'
+arduino = serial.Serial('COM6', 9600, timeout=1)
 
 pygame.init()
 
 FPS = 30
 WINDOW_WIDTH = 1024
-WINDOW_HEIGHT = 768
+WINDOW_HEIGHT = 718
 running = True
 
 BG = pygame.image.load("sprites/background.png")
@@ -31,36 +20,54 @@ clock = pygame.time.Clock()
 
 pygame.display.set_caption("Duck Hunt")
 
+
 ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(50, 300), random.choice([-8, 8])) for _ in range(5)]
+
+def respawn_ducks():
+    global ducks
+    ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(50, 300), random.choice([-8, 8])) for _ in range(5)]
+
 player = Player()
-bullets = []
+hit_ducks = {}
+
+# Flash variables
+flash_active = False
+flash_start_time = 0
+FLASH_DURATION = 0.05  # Flash duration in seconds
 
 def main_menu():
-    global running
+    global running, flash_active, flash_start_time
     while running:
-        SCREEN.blit(BG,(0,0))
+        if flash_active:
+            # Flash the screen white
+            SCREEN.fill('WHITE')
+            # Check if flash duration has passed
+            if pygame.time.get_ticks() - flash_start_time > FLASH_DURATION * 1000:
+                flash_active = False
+        else:
+            # Draw the background
+            SCREEN.blit(BG, (0, 0))
 
-        mouse_pos = pygame.mouse.get_pos()
-        player.move(mouse_pos)
-        
-        for duck in ducks:
-            duck.move()
-            duck.draw(SCREEN)
-
-        for bullet in bullets:
-            bullet.move()
-            bullet.draw(SCREEN)
-
-        for bullet in bullets:
+            # Move and draw ducks
             for duck in ducks:
-                if duck.rect.colliderect(bullet.rect):
-                    duck.remove(duck)
-                    bullets.remove(bullet)
-                    player.score += 10
-                    break
+                duck.move()
+                duck.draw(SCREEN)
 
-        player.draw(SCREEN)
+            # Draw the player (crosshair)
+            mouse_pos = pygame.mouse.get_pos()
+            player.move(mouse_pos)
+            player.draw(SCREEN)
 
+        # remove the ducks that are hit by the crosshair
+        current_time = pygame.time.get_ticks()
+    
+        for duck, hit_time in list(hit_ducks.items()):
+            if current_time - hit_time > FLASH_DURATION * 1000:
+                ducks.remove(duck)
+                del hit_ducks[duck]
+            
+
+        # Update the display
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -68,11 +75,21 @@ def main_menu():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    bullets.append(Gun(player.rect.centerx, player.rect.centery))
 
-        
+                if event.key == pygame.K_r:
+                    respawn_ducks()
 
-SCREEN.fill("White")
+
+        if arduino.in_waiting > 0:
+            line = arduino.readline().decode('utf-8').strip()
+            if line == 'SHOT':
+                flash_active = True
+                flash_start_time = pygame.time.get_ticks()
+                for duck in ducks:
+                    if player.rect.colliderect(duck.rect) and duck not in hit_ducks:
+                        hit_ducks[duck] = pygame.time.get_ticks()
+                        player.score += 500
+
+# Start the game
 main_menu()
+pygame.quit()

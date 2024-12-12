@@ -10,5 +10,5 @@ class Gun():
     def move(self):
         self.y += self.speed
 
-    def draw(self):
+    def draw(self, SCREEN):
         pygame.draw.rect(SCREEN, 'BLACK', self.rect)

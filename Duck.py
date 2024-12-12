@@ -11,6 +11,8 @@ class Duck():
         self.flipped_image = pygame.transform.flip(self.image, True, False)  # Flippet version
         self.current_image = self.image  # Den nuværende sprite, der vises
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        if self.speed < 0:
+            self.current_image = self.flipped_image
 
     def move(self):
         self.x += self.speed
