@@ -4,34 +4,28 @@ from duck import Duck
 from player import Player
 import serial
 
-arduino = serial.Serial('COM6', 9600, timeout=1)
-
 pygame.init()
+
+arduino = serial.Serial('COM6', 9600, timeout=1)
 
 FPS = 30
 WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 718
 running = True
-
 mapped_x = 0
 mapped_y = 0
 
-BG = pygame.image.load("sprites/background.png")
-
 SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 clock = pygame.time.Clock()
-
+BG = pygame.image.load("sprites/background.png")
 pygame.display.set_caption("Duck Hunt")
 
-
 ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(25, 250), random.choice([-8, 8])) for _ in range(5)]
-
+player = Player()
+hit_ducks = {}
 def respawn_ducks():
     global ducks
     ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(25, 250), random.choice([-8, 8])) for _ in range(5)]
-
-player = Player()
-hit_ducks = {}
 
 # Flash variables
 flash_active = False
@@ -69,7 +63,6 @@ def main_menu():
             if current_time - hit_time > FLASH_DURATION * 1000:
                 ducks.remove(duck)
                 del hit_ducks[duck]
-            
 
         # Update the display
         pygame.display.flip()
@@ -81,14 +74,6 @@ def main_menu():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     respawn_ducks()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                flash_active = True
-                flash_start_time = pygame.time.get_ticks()
-                for duck in ducks:
-                    if player.rect.colliderect(duck.rect) and duck not in hit_ducks:
-                        hit_ducks[duck] = pygame.time.get_ticks()
-                        player.score += 500
-
                     
         if arduino.in_waiting > 0:
             line = arduino.readline().decode('utf-8').strip()
@@ -102,7 +87,6 @@ def main_menu():
 
             if "accelerations are" in line:
                 coords = line.split(":")[-1].strip().split()
-
 
                 x, y, z= map(int, coords)
                 mapped_x = (x-400)/220 * 980
