@@ -13,6 +13,9 @@ WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 718
 running = True
 
+mapped_x = 0
+mapped_y = 0
+
 BG = pygame.image.load("sprites/background.png")
 
 SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -21,11 +24,11 @@ clock = pygame.time.Clock()
 pygame.display.set_caption("Duck Hunt")
 
 
-ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(50, 300), random.choice([-8, 8])) for _ in range(5)]
+ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(25, 250), random.choice([-8, 8])) for _ in range(5)]
 
 def respawn_ducks():
     global ducks
-    ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(50, 300), random.choice([-8, 8])) for _ in range(5)]
+    ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(25, 250), random.choice([-8, 8])) for _ in range(5)]
 
 player = Player()
 hit_ducks = {}
@@ -36,7 +39,7 @@ flash_start_time = 0
 FLASH_DURATION = 0.05  # Flash duration in seconds
 
 def main_menu():
-    global running, flash_active, flash_start_time
+    global running, flash_active, flash_start_time, mapped_x, mapped_y
     while running:
         if flash_active:
             # Flash the screen white
@@ -54,6 +57,7 @@ def main_menu():
                 duck.draw(SCREEN)
 
             # Draw the player (crosshair)
+            pygame.mouse.set_pos(mapped_x, mapped_y)
             mouse_pos = pygame.mouse.get_pos()
             player.move(mouse_pos)
             player.draw(SCREEN)
@@ -72,14 +76,20 @@ def main_menu():
         clock.tick(FPS)
 
         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-
                 if event.key == pygame.K_r:
                     respawn_ducks()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                flash_active = True
+                flash_start_time = pygame.time.get_ticks()
+                for duck in ducks:
+                    if player.rect.colliderect(duck.rect) and duck not in hit_ducks:
+                        hit_ducks[duck] = pygame.time.get_ticks()
+                        player.score += 500
 
-
+                    
         if arduino.in_waiting > 0:
             line = arduino.readline().decode('utf-8').strip()
             if line == 'SHOT':
@@ -89,6 +99,14 @@ def main_menu():
                     if player.rect.colliderect(duck.rect) and duck not in hit_ducks:
                         hit_ducks[duck] = pygame.time.get_ticks()
                         player.score += 500
+
+            if "accelerations are" in line:
+                coords = line.split(":")[-1].strip().split()
+
+
+                x, y, z= map(int, coords)
+                mapped_x = (x-400)/220 * 980
+                mapped_y = (y-390)/220 * 640
 
 # Start the game
 main_menu()
