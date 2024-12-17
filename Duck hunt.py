@@ -44,10 +44,12 @@ def main_menu():
         else:
             # Draw the background
             SCREEN.blit(BG, (0, 0))
-            '''
-            SCORE_TEXT = pygame.font.Font("sprites/font.ttf").render(player.score, True, "#FFFFFF")
-            SCORE_RECT = SCORE_RECT.get_rect(center=(800, 500))
-            '''
+            
+            SCORE_TEXT = pygame.font.Font("sprites/font.ttf").render(str(player.score), True, "White")
+            SCORE_RECT = SCORE_TEXT.get_rect(center=(900, 630))
+
+            SCREEN.blit(SCORE_TEXT, SCORE_RECT)
+            
             # Move and draw ducks
             for duck in ducks:
                 duck.move()
