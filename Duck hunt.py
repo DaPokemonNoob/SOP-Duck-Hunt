@@ -4,8 +4,10 @@ from duck import Duck
 from player import Player
 import serial
 
+# pygame initialiseres
 pygame.init()
 
+# arduinoen defineres med porten
 arduino = serial.Serial('COM6', 9600, timeout=1)
 
 FPS = 30
@@ -20,6 +22,7 @@ clock = pygame.time.Clock()
 BG = pygame.image.load("sprites/background.png")
 pygame.display.set_caption("Duck Hunt")
 
+# lav 5 ænder med forskellige positioner
 ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(25, 250), random.choice([-8, 8])) for _ in range(5)]
 player = Player()
 hit_ducks = {}
@@ -27,41 +30,42 @@ def respawn_ducks():
     global ducks
     ducks = [Duck(random.randint(0, WINDOW_WIDTH - 150), random.randint(25, 250), random.choice([-8, 8])) for _ in range(5)]
 
-# Flash variables
+# Flash variabler
 flash_active = False
 flash_start_time = 0
-FLASH_DURATION = 0.05  # Flash duration in seconds
+FLASH_DURATION = 0.05  # Flash længde i sekunder
 
 def main_menu():
     global running, flash_active, flash_start_time, mapped_x, mapped_y
     while running:
         if flash_active:
-            # Flash the screen white
+            # Flash skærmen hvid
             SCREEN.fill('WHITE')
-            # Check if flash duration has passed
+            # tjek om flash duration tiden er gået
             if pygame.time.get_ticks() - flash_start_time > FLASH_DURATION * 1000:
                 flash_active = False
         else:
-            # Draw the background
+            # tegn baggrunden
             SCREEN.blit(BG, (0, 0))
-            
+
+            # lav score tekst og tegn den på skærmen            
             SCORE_TEXT = pygame.font.Font("sprites/font.ttf").render(str(player.score), True, "White")
             SCORE_RECT = SCORE_TEXT.get_rect(center=(900, 630))
 
             SCREEN.blit(SCORE_TEXT, SCORE_RECT)
             
-            # Move and draw ducks
+            # bevæg og tegn ænderne
             for duck in ducks:
                 duck.move()
                 duck.draw(SCREEN)
 
-            # Draw the player (crosshair)
+            # tegn playeren (crosshair)
             pygame.mouse.set_pos(mapped_x, mapped_y)
             mouse_pos = pygame.mouse.get_pos()
             player.move(mouse_pos)
             player.draw(SCREEN)
 
-        # remove the ducks that are hit by the crosshair
+        # fjern ænderne der er ramt af crosshairet
         current_time = pygame.time.get_ticks()
     
         for duck, hit_time in list(hit_ducks.items()):
@@ -69,7 +73,7 @@ def main_menu():
                 ducks.remove(duck)
                 del hit_ducks[duck]
 
-        # Update the display
+        # Update displayet
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -79,7 +83,8 @@ def main_menu():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     respawn_ducks()
-                    
+
+        # modtag og tjek arduinoens input
         if arduino.in_waiting > 0:
             line = arduino.readline().decode('utf-8').strip()
             if line == 'SHOT':
@@ -90,6 +95,7 @@ def main_menu():
                         hit_ducks[duck] = pygame.time.get_ticks()
                         player.score += 500
 
+            # lav stringen om til variabler
             if "accelerations are" in line:
                 coords = line.split(":")[-1].strip().split()
 
@@ -97,6 +103,6 @@ def main_menu():
                 mapped_x = (x-400)/220 * 980
                 mapped_y = (y-390)/220 * 640
 
-# Start the game
+# Start spillet
 main_menu()
 pygame.quit()
